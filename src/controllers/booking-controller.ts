@@ -8,7 +8,7 @@ async function getBooking(req: AuthenticatedRequest, res: Response) {
     try {
         const booking = await bookingService.getBooking(Number(userId))
         res.status(httpStatus.OK).send({
-            bookingId: booking.id,
+            id: booking.id,
             Room: booking.Room
         })
     } catch (err) {
