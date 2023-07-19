@@ -1,8 +1,6 @@
 import { notFoundError } from "../../errors"
-import { forBiddenBooking } from "../../errors/for-bidden"
 import { bookingRepository } from "../../repositories/booking-repository.ts"
-import enrollmentRepository from "../../repositories/enrollment-repository"
-import ticketsRepository from "../../repositories/tickets-repository"
+
 
 async function getBooking(userId: number) {
     const booking = await bookingRepository.getBooking(userId)
