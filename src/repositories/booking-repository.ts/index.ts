@@ -25,6 +25,8 @@ function roomChange(id: number, roomId: number) {
             id
         }, data: {
             roomId
+        }, select: {
+            id: true
         }
     })
 }

@@ -135,3 +135,56 @@ describe("POST /booking errors cases", () => {
     })
 
 })
+
+describe("PUT /booking/:bookingId cases erros and sucess", () => {
+    it("should returns 403 when not have booking", async () => {
+        const bookingMock = jest.spyOn(bookingRepository, "getBooking")
+        bookingMock.mockImplementationOnce((): any => {
+            return undefined
+        })
+
+        const result = bookingService.roomChange(1, 1, 1)
+        expect(result).rejects.toEqual({
+            name: 'ForBiddenBooking',
+            message: 'You cannot make reservations'
+        })
+    })
+    it("should returns 404 when not have room", async () => {
+        const bookingMock = jest.spyOn(bookingRepository, "getBooking")
+        bookingMock.mockImplementationOnce((): any => {
+            return true
+        })
+
+        const roomMock = jest.spyOn(hotelRepository, "findCapacityRoom")
+        roomMock.mockImplementationOnce((): any => {
+            return undefined
+        })
+
+        const result = bookingService.roomChange(1, 1, 1)
+        expect(result).rejects.toEqual({
+            name: 'NotFoundError',
+            message: 'No result for this search!'
+        })
+    })
+    it("should returns 403 when not have more capacity in room", async () => {
+        const bookingMock = jest.spyOn(bookingRepository, "getBooking")
+        bookingMock.mockImplementationOnce((): any => {
+            return true
+        })
+
+        const roomMock = jest.spyOn(hotelRepository, "findCapacityRoom")
+        roomMock.mockImplementationOnce((): any => {
+            return {
+                capacity: 1,
+                Booking: [1, 2]
+            }
+        })
+
+        const result = bookingService.roomChange(1, 1, 1)
+        expect(result).rejects.toEqual({
+            name: 'ForBiddenBooking',
+            message: 'You cannot make reservations'
+        })
+    })
+
+})
