@@ -2,11 +2,11 @@ import supertest from "supertest";
 import app, { init } from "@/app";
 import httpStatus from "http-status";
 import faker from "@faker-js/faker";
-import { createHotel, createRoomWithHotelId, createUser } from "../factories";
+import { createEnrollmentWithAddress, createHotel, createRoomWithHotelId, createTicket, createTicketTypeWithHotel, createUser } from "../factories";
 import * as jwt from "jsonwebtoken"
 import { cleanDb, generateValidToken } from "../helpers";
 import { TicketStatus } from "@prisma/client";
-import { createBooking, getBooking } from "../factories/booking-factory";
+import { createBooking, findBooking } from "../factories/booking-factory";
 
 const server = supertest(app)
 
@@ -50,7 +50,7 @@ describe("token is valid", () => {
         const hotel = await createHotel()
         const room = await createRoomWithHotelId(hotel.id)
         await createBooking(user.id, room.id)
-        const booking = await getBooking(user.id)
+        const booking = await findBooking(user.id)
 
         const result = await server.get("/booking").set("Authorization", `Bearer ${token}`)
         expect(result.status).toBe(httpStatus.OK)
@@ -97,6 +97,9 @@ describe("token is valid", () => {
     it("should return 200 to create reservations", async () => {
         const user = await createUser()
         const token = await generateValidToken(user)
+        const enrollment = await createEnrollmentWithAddress(user)
+        const ticketType = await createTicketTypeWithHotel()
+        await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID)
         const hotel = await createHotel()
         const room = await createRoomWithHotelId(hotel.id)
 
