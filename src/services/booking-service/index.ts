@@ -25,7 +25,18 @@ async function postBooking(userId: number, roomId: number) {
     return booking
 }
 
+async function roomChange(userId: number, roomId: number, bookingId: number) {
+    const booking = await bookingRepository.getBooking(userId)
+    if (!booking) throw forBiddenBooking()
+    const room = await hotelRepository.findCapacityRoom(roomId)
+    if (!room) throw notFoundError()
+    if (room.Booking.length >= room.capacity) throw forBiddenBooking()
+    const result = await bookingRepository.roomChange(bookingId, roomId)
+    return result
+}
+
 export const bookingService = {
     getBooking,
-    postBooking
+    postBooking,
+    roomChange
 }

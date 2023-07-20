@@ -40,7 +40,27 @@ async function postBooking(req: AuthenticatedRequest, res: Response) {
     }
 }
 
+async function roomChange(req: AuthenticatedRequest, res: Response) {
+    const bookingId = parseInt(req.params.bookingId)
+    const { roomId } = req.body
+    const { userId } = req
+    try {
+        if (isNaN(bookingId) || bookingId <= 0) return res.sendStatus(httpStatus.BAD_REQUEST)
+        const result = await bookingService.roomChange(userId, roomId, bookingId)
+        res.status(httpStatus.OK).send({ bookingId: result.id })
+    } catch (err) {
+        if (err.name === 'ForBiddenBooking') {
+            return res.status(httpStatus.FORBIDDEN).send(err.message)
+        }
+        if (err.name === 'NotFoundError') {
+            return res.status(httpStatus.NOT_FOUND).send(err.message)
+        }
+        res.status(httpStatus.INTERNAL_SERVER_ERROR).send(err.message)
+    }
+}
+
 export const bookingControllers = {
     getBooking,
-    postBooking
+    postBooking,
+    roomChange
 }
