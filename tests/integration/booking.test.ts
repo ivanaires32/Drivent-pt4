@@ -44,6 +44,15 @@ describe('GET /booking', () => {
 })
 
 describe("token is valid", () => {
+    it("should return 404 when user has no booking", async () => {
+        const user = await createUser()
+        const token = await generateValidToken(user)
+        const hotel = await createHotel()
+        await createRoomWithHotelId(hotel.id)
+
+        const result = await server.get("/booking").set("Authorization", `Bearer ${token}`)
+        expect(result.status).toBe(httpStatus.NOT_FOUND)
+    })
     it("should return 200 to fetch reservations", async () => {
         const user = await createUser()
         const token = await generateValidToken(user)
@@ -94,6 +103,38 @@ describe('POST /booking', () => {
 })
 
 describe("token is valid", () => {
+
+    it("should return 404 when user has no booking", async () => {
+        const user = await createUser()
+        const token = await generateValidToken(user)
+        const enrollment = await createEnrollmentWithAddress(user)
+        const ticketType = await createTicketTypeWithHotel()
+        await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID)
+        await createHotel()
+
+        const body = { roomId: faker.datatype.number({ max: 100 }) }
+
+        const result = await server.post("/booking").set("Authorization", `Bearer ${token}`).send(body)
+        expect(result.status).toBe(httpStatus.NOT_FOUND)
+    })
+
+    it("should return 403 when the room has no vacancies", async () => {
+        const user = await createUser()
+        const token = await generateValidToken(user)
+        const enrollment = await createEnrollmentWithAddress(user)
+        const ticketType = await createTicketTypeWithHotel()
+        await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID)
+        const hotel = await createHotel()
+        const room = await createRoomWithHotelId(hotel.id)
+        await createBooking(user.id, room.id)
+        await createBooking(user.id, room.id)
+
+        const body = { roomId: room.id }
+
+        const result = await server.post("/booking").set("Authorization", `Bearer ${token}`).send(body)
+        expect(result.status).toBe(httpStatus.FORBIDDEN)
+    })
+
     it("should return 200 to create reservations", async () => {
         const user = await createUser()
         const token = await generateValidToken(user)
@@ -140,6 +181,40 @@ describe('PUT /booking/:bookingId', () => {
 })
 
 describe("token is valid", () => {
+
+    it("should return 404 when user has no booking", async () => {
+        const user = await createUser()
+        const token = await generateValidToken(user)
+        const enrollment = await createEnrollmentWithAddress(user)
+        const ticketType = await createTicketTypeWithHotel()
+        await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID)
+        const hotel = await createHotel()
+        const room = await createRoomWithHotelId(hotel.id)
+        const booking = await createBooking(user.id, room.id)
+        const body = { roomId: 1 }
+
+        const result = await server.put(`/booking/${booking.id}`).set("Authorization", `Bearer ${token}`).send(body)
+        expect(result.status).toBe(httpStatus.NOT_FOUND)
+    })
+
+    it("should return 403 when the room has no vacancies", async () => {
+        const user = await createUser()
+        const token = await generateValidToken(user)
+        const enrollment = await createEnrollmentWithAddress(user)
+        const ticketType = await createTicketTypeWithHotel()
+        await createTicket(enrollment.id, ticketType.id, TicketStatus.PAID)
+        const hotel = await createHotel()
+        const room = await createRoomWithHotelId(hotel.id)
+        const booking = await createBooking(user.id, room.id)
+        await createBooking(user.id, room.id)
+        await createBooking(user.id, room.id)
+
+        const body = { roomId: room.id }
+
+        const result = await server.put(`/booking/${booking.id}`).set("Authorization", `Bearer ${token}`).send(body)
+        expect(result.status).toBe(httpStatus.FORBIDDEN)
+    })
+
     it("should return 200 to change room", async () => {
         const user = await createUser()
         const token = await generateValidToken(user)

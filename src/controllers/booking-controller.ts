@@ -12,9 +12,6 @@ async function getBooking(req: AuthenticatedRequest, res: Response) {
             Room: booking.Room
         })
     } catch (err) {
-        if (err.name === 'ForBiddenBooking') {
-            return res.status(httpStatus.FORBIDDEN).send(err.message)
-        }
         if (err.name === 'NotFoundError') {
             return res.status(httpStatus.NOT_FOUND).send(err.message)
         }
@@ -26,7 +23,6 @@ async function postBooking(req: AuthenticatedRequest, res: Response) {
     const roomId = parseInt(req.body.roomId)
     const { userId } = req
     try {
-        if (isNaN(roomId) || roomId === 0) return res.sendStatus(httpStatus.FORBIDDEN)
         const result = await bookingService.postBooking(userId, roomId)
         res.status(httpStatus.OK).send({ bookingId: result.id })
     } catch (err) {
@@ -45,7 +41,6 @@ async function roomChange(req: AuthenticatedRequest, res: Response) {
     const { roomId } = req.body
     const { userId } = req
     try {
-        if (isNaN(bookingId) || bookingId <= 0) return res.sendStatus(httpStatus.BAD_REQUEST)
         const result = await bookingService.roomChange(userId, roomId, bookingId)
         res.status(httpStatus.OK).send({ bookingId: result.id })
     } catch (err) {
